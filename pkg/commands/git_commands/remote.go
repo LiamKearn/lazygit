@@ -74,3 +74,13 @@ func (self *RemoteCommands) CheckRemoteBranchExists(branchName string) bool {
 
 	return err == nil
 }
+
+// Resolve what might be a aliased URL into a full URL
+// SEE: `man -P 'less +/--get-url +n' git-ls-remote`
+func (self *RemoteCommands) GetRemoteURL(remoteName string) (string, error) {
+    cmdArgs := NewGitCmd("ls-remote").
+        Arg("--get-url", remoteName).
+        ToArgv()
+
+    return self.cmd.New(cmdArgs).RunWithOutput();
+}

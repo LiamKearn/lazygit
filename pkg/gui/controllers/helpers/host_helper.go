@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
+    "strings"
 )
 
 // this helper just wraps our hosting_service package
@@ -35,7 +36,11 @@ func (self *HostHelper) GetCommitURL(commitSha string) (string, error) {
 // from one invocation to the next. Note however that we're currently caching config
 // results so we might want to invalidate the cache here if it becomes a problem.
 func (self *HostHelper) getHostingServiceMgr() *hosting_service.HostingServiceMgr {
-	remoteUrl := self.c.Git().Config.GetRemoteURL()
+	configuredRemoteUrl := self.c.Git().Config.GetRemoteURL()
+    // Take any user configuration that would rewrite the remote URL stored in
+    // the configuration file into account.
+    resolvedRemoteUrl, _ := self.c.Git().Remote.GetRemoteURL(configuredRemoteUrl)
+    resolvedRemoteUrl = strings.TrimSuffix(resolvedRemoteUrl, "\n") + ".git"
 	configServices := self.c.UserConfig.Services
-	return hosting_service.NewHostingServiceMgr(self.c.Log, self.c.Tr, remoteUrl, configServices)
+	return hosting_service.NewHostingServiceMgr(self.c.Log, self.c.Tr, resolvedRemoteUrl, configServices)
 }
